@@ -1,0 +1,887 @@
+CPU Scheduling (FCFS) – NON PREEMPTIVE:
+
+#include <stdio.h>
+int main()
+{
+	int A[100][4]; // Matrix for storing Process Id, Burst
+				// Time, Average Waiting Time & Average
+				// Turn Around Time.
+	int i, j, n, total = 0, index, temp;
+	float avg_wt, avg_tat;
+	printf("Enter number of process: ");
+	scanf("%d", &n);
+	printf("Enter Burst Time:\n");
+	// User Input Burst Time and alloting Process Id.
+	for (i = 0; i < n; i++) {
+		printf("P%d: ", i + 1);
+		scanf("%d", &A[i][1]);
+		A[i][0] = i + 1;
+	}
+	// Sorting process according to their Burst Time.
+	for (i = 0; i < n; i++) {
+		index = i;
+		for (j = i + 1; j < n; j++)
+			if (A[j][1] < A[index][1])
+				index = j;
+		temp = A[i][1];
+		A[i][1] = A[index][1];
+		A[index][1] = temp;
+
+		temp = A[i][0];
+		A[i][0] = A[index][0];
+		A[index][0] = temp;
+	}
+	A[0][2] = 0;
+	// Calculation of Waiting Times
+	for (i = 1; i < n; i++) {
+		A[i][2] = 0;
+		for (j = 0; j < i; j++)
+			A[i][2] += A[j][1];
+		total += A[i][2];
+	}
+	avg_wt = (float)total / n;
+	total = 0;
+	printf("P	 BT	 WT	 TAT\n");
+	// Calculation of Turn Around Time and printing the
+	// data.
+	for (i = 0; i < n; i++) {
+		A[i][3] = A[i][1] + A[i][2];
+		total += A[i][3];
+		printf("P%d	 %d	 %d	 %d\n", A[i][0],
+			A[i][1], A[i][2], A[i][3]);
+	}
+	avg_tat = (float)total / n;
+	printf("Average Waiting Time= %f", avg_wt);
+	printf("\nAverage Turnaround Time= %f", avg_tat);
+}
+
+
+
+
+
+
+
+
+
+CPU Scheduling (FCFS) – PREEMPTIVE:
+// C++ program to implement Shortest Remaining Time First
+// Shortest Remaining Time First (SRTF)
+
+#include <bits/stdc++.h>
+using namespace std;
+
+struct Process {
+	int pid; // Process ID
+	int bt; // Burst Time
+	int art; // Arrival Time
+};
+
+// Function to find the waiting time for all
+// processes
+void findWaitingTime(Process proc[], int n,
+								int wt[])
+{
+	int rt[n];
+
+	// Copy the burst time into rt[]
+	for (int i = 0; i < n; i++)
+		rt[i] = proc[i].bt;
+
+	int complete = 0, t = 0, minm = INT_MAX;
+	int shortest = 0, finish_time;
+	bool check = false;
+
+	// Process until all processes gets
+	// completed
+	while (complete != n) {
+
+		// Find process with minimum
+		// remaining time among the
+		// processes that arrives till the
+		// current time`
+		for (int j = 0; j < n; j++) {
+			if ((proc[j].art <= t) &&
+			(rt[j] < minm) && rt[j] > 0) {
+				minm = rt[j];
+				shortest = j;
+				check = true;
+			}
+		}
+
+		if (check == false) {
+			t++;
+			continue;
+		}
+
+		// Reduce remaining time by one
+		rt[shortest]--;
+
+		// Update minimum
+		minm = rt[shortest];
+		if (minm == 0)
+			minm = INT_MAX;
+
+		// If a process gets completely
+		// executed
+		if (rt[shortest] == 0) {
+
+			// Increment complete
+			complete++;
+			check = false;
+
+			// Find finish time of current
+			// process
+			finish_time = t + 1;
+
+			// Calculate waiting time
+			wt[shortest] = finish_time -
+						proc[shortest].bt -
+						proc[shortest].art;
+
+			if (wt[shortest] < 0)
+				wt[shortest] = 0;
+		}
+		// Increment time
+		t++;
+	}
+}
+
+// Function to calculate turn around time
+void findTurnAroundTime(Process proc[], int n,
+						int wt[], int tat[])
+{
+	// calculating turnaround time by adding
+	// bt[i] + wt[i]
+	for (int i = 0; i < n; i++)
+		tat[i] = proc[i].bt + wt[i];
+}
+
+// Function to calculate average time
+void findavgTime(Process proc[], int n)
+{
+	int wt[n], tat[n], total_wt = 0,
+					total_tat = 0;
+
+	// Function to find waiting time of all
+	// processes
+	findWaitingTime(proc, n, wt);
+
+	// Function to find turn around time for
+	// all processes
+	findTurnAroundTime(proc, n, wt, tat);
+
+	// Display processes along with all
+	// details
+	cout << " P\t\t"
+		<< "BT\t\t"
+		<< "WT\t\t"
+		<< "TAT\t\t\n";
+
+	// Calculate total waiting time and
+	// total turnaround time
+	for (int i = 0; i < n; i++) {
+		total_wt = total_wt + wt[i];
+		total_tat = total_tat + tat[i];
+		cout << " " << proc[i].pid << "\t\t"
+			<< proc[i].bt << "\t\t " << wt[i]
+			<< "\t\t " << tat[i] << endl;
+	}
+
+	cout << "\nAverage waiting time = "
+		<< (float)total_wt / (float)n;
+	cout << "\nAverage turn around time = "
+		<< (float)total_tat / (float)n;
+}
+
+// Driver code
+int main()
+{
+	Process proc[] = { { 1, 6, 2 }, { 2, 2, 5 },
+					{ 3, 8, 1 }, { 4, 3, 0}, {5, 4, 4} };
+	int n = sizeof(proc) / sizeof(proc[0]);
+
+	findavgTime(proc, n);
+	return 0;
+}
+
+
+
+
+
+
+
+CPU Scheduling Round Robin:
+#include <stdio.h>
+#include <stdbool.h>
+
+void nextProcess(int queue[], int n, int selected_proc) {
+    int next;
+    for (int i = 0; i < n; i++) {
+        if (queue[i] == 0) {
+            next = i;
+            break;
+        }
+    }  
+    queue[next] = selected_proc + 1;
+}
+
+void selectProcess(int queue[], int n) { // place a proc fwd if its in readyQueue
+    for (int i = 0; (i < n-1) && (queue[i+1] != 0) ; i++) {
+        int temp = queue[i];
+        queue[i] = queue[i+1];
+        queue[i+1] = temp;
+    }
+}
+
+void newRequest(int curr_time, int at[], int n, int selected_proc, int queue[]) {
+    if (curr_time <= at[n-1]) { // task is still pending
+       bool newArrival = false;
+       for (int j = selected_proc + 1; j < n; j++) {
+             if (at[j] <= curr_time) {
+                if (selected_proc < j) {
+                    selected_proc = j;
+                    newArrival = true;
+                }
+           }
+       }
+       
+       if (newArrival) {
+          nextProcess(queue, n, selected_proc);
+       }
+    }
+}
+
+int main() {
+    int n, tq, sumWait = 0, sumTAT = 0, selected_proc = 0; // index of proc selected
+    printf("Enter no of proc and time quanta: ");
+    scanf("%d %d", &n, &tq);
+    
+    int at[n], bt[n], rt[n], wt[n], tat[n], queue[n], curr_time = 0, idle_time = 0;
+    bool is_complete[n];
+    
+    for (int i = 0; i < n; i++) {
+        printf("Enter arrival, burst time for proc %d: ", i+1);
+        scanf("%d %d", &at[i], &bt[i]);
+        rt[i] = bt[i];
+        queue[i] = 0;
+        is_complete[i] = false;
+    }
+    
+    while (curr_time != at[0]) {
+        curr_time++;
+    }
+    
+    queue[0] = 1;
+    
+    while (true) {
+        bool flag = true;
+        for (int i = 0; i < n; i++) {
+            if (rt[i] != 0) { // even if one proc is running
+                flag = false;
+                break;
+            }
+        }
+        
+        if (flag) // all procs have finished
+            break;
+ 
+        for (int i = 0; (i < n) && (queue[i] != 0); i++) { // proc is in readyQueue
+            int ctr = 0;
+            while ((ctr < tq) && (rt[queue[0]-1] > 0)) {
+                rt[queue[0]-1]--; // rem time for proc in readyQueue
+                curr_time++;
+                ctr++;
+                newRequest(curr_time, at, n, selected_proc, queue);
+            }
+
+            if ((rt[queue[0]-1] == 0) && (is_complete[queue[0]-1] == false)) {
+                tat[queue[0]-1] = curr_time;       
+                is_complete[queue[0]-1] = true;
+            }
+
+            bool idle = true;
+            if (queue[n-1] == 0) {
+                for (int i = 0; i < n && queue[i] != 0; i++) {
+                    if (is_complete[queue[i]-1] == false) {
+                        idle = false; // if atleast one proc is in readyQueue
+                    }
+                }
+            } else {
+                idle = false;
+            }
+            
+            if (idle) {
+                curr_time++;
+                newRequest(curr_time, at, n, selected_proc, queue);
+            }
+            
+            selectProcess(queue,n);
+        }
+    }
+    
+    for (int i = 0; i < n; i++) {
+        tat[i] -= at[i];
+        wt[i] = tat[i] - bt[i];
+    }
+    
+    printf("\nPId\tArr\tBT\tWait\tTAT\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t%d\t%d\t%d\t%d\n", i+1, at[i], bt[i], wt[i], tat[i]);
+    }
+    
+    for (int i = 0; i < n; i++) {
+        sumWait += wt[i];
+        sumTAT += tat[i];
+    }
+    
+    printf("\nAverage wait time: %f", (float)sumWait/n);
+    printf("\nAverage Turn Around Time: %f\n", (float)sumTAT/n);
+}
+
+
+
+
+CPU Scheduling SJF
+#include <stdio.h>
+int main()
+{
+	int A[100][4]; // Matrix for storing Process Id, Burst
+				// Time, Average Waiting Time & Average
+				// Turn Around Time.
+	int i, j, n, total = 0, index, temp;
+	float avg_wt, avg_tat;
+	printf("Enter number of process: ");
+	scanf("%d", &n);
+	printf("Enter Burst Time:\n");
+	// User Input Burst Time and alloting Process Id.
+	for (i = 0; i < n; i++) {
+		printf("P%d: ", i + 1);
+		scanf("%d", &A[i][1]);
+		A[i][0] = i + 1;
+	}
+	// Sorting process according to their Burst Time.
+	for (i = 0; i < n; i++) {
+		index = i;
+		for (j = i + 1; j < n; j++)
+			if (A[j][1] < A[index][1])
+				index = j;
+		temp = A[i][1];
+		A[i][1] = A[index][1];
+		A[index][1] = temp;
+
+		temp = A[i][0];
+		A[i][0] = A[index][0];
+		A[index][0] = temp;
+	}
+	A[0][2] = 0;
+	// Calculation of Waiting Times
+	for (i = 1; i < n; i++) {
+		A[i][2] = 0;
+		for (j = 0; j < i; j++)
+			A[i][2] += A[j][1];
+		total += A[i][2];
+	}
+	avg_wt = (float)total / n;
+	total = 0;
+	printf("P	 BT	 WT	 TAT\n");
+	// Calculation of Turn Around Time and printing the
+	// data.
+	for (i = 0; i < n; i++) {
+		A[i][3] = A[i][1] + A[i][2];
+		total += A[i][3];
+		printf("P%d	 %d	 %d	 %d\n", A[i][0],
+			A[i][1], A[i][2], A[i][3]);
+	}
+	avg_tat = (float)total / n;
+	printf("Average Waiting Time= %f", avg_wt);
+	printf("\nAverage Turnaround Time= %f", avg_tat);
+}
+
+
+
+
+
+
+CPU Scheduling (Priority)
+
+#include<bits/stdc++.h>
+using namespace std;
+
+struct Process
+{
+	int pid; // Process ID
+	int bt; // CPU Burst time required
+	int priority; // Priority of this process
+};
+
+// Function to sort the Process acc. to priority
+bool comparison(Process a, Process b)
+{
+	return (a.priority > b.priority);
+}
+
+// Function to find the waiting time for all
+// processes
+void findWaitingTime(Process proc[], int n,
+					int wt[])
+{
+	// waiting time for first process is 0
+	wt[0] = 0;
+
+	// calculating waiting time
+	for (int i = 1; i < n ; i++ )
+		wt[i] = proc[i-1].bt + wt[i-1] ;
+}
+
+// Function to calculate turn around time
+void findTurnAroundTime( Process proc[], int n,
+						int wt[], int tat[])
+{
+	// calculating turnaround time by adding
+	// bt[i] + wt[i]
+	for (int i = 0; i < n ; i++)
+		tat[i] = proc[i].bt + wt[i];
+}
+
+//Function to calculate average time
+void findavgTime(Process proc[], int n)
+{
+	int wt[n], tat[n], total_wt = 0, total_tat = 0;
+
+	//Function to find waiting time of all processes
+	findWaitingTime(proc, n, wt);
+
+	//Function to find turn around time for all processes
+	findTurnAroundTime(proc, n, wt, tat);
+
+	//Display processes along with all details
+	cout << "\nProcesses "<< " Burst time "
+		<< " Waiting time " << " Turn around time\n";
+
+	// Calculate total waiting time and total turn
+	// around time
+	for (int i=0; i<n; i++)
+	{
+		total_wt = total_wt + wt[i];
+		total_tat = total_tat + tat[i];
+		cout << " " << proc[i].pid << "\t\t"
+			<< proc[i].bt << "\t " << wt[i]
+			<< "\t\t " << tat[i] <<endl;
+	}
+
+	cout << "\nAverage waiting time = "
+		<< (float)total_wt / (float)n;
+	cout << "\nAverage turn around time = "
+		<< (float)total_tat / (float)n;
+}
+
+void priorityScheduling(Process proc[], int n)
+{
+	// Sort processes by priority
+	sort(proc, proc + n, comparison);
+
+	cout<< "Order in which processes gets executed \n";
+	for (int i = 0 ; i < n; i++)
+		cout << proc[i].pid <<" " ;
+
+	findavgTime(proc, n);
+}
+
+// Driver code
+int main()
+{
+	Process proc[] = {{1, 10, 2}, {2, 5, 0}, {3, 8, 1}};
+	int n = sizeof proc / sizeof proc[0];
+	priorityScheduling(proc, n);
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+Disk Scheduling (FCFS):
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+int seek_time(int arr[], int head, int len) {
+    int seek_time = abs(arr[0] - head);
+    for (int i = 1; i < len; i++)
+        seek_time += abs(arr[i] - arr[i-1]);
+    
+    return seek_time;
+}
+
+int main() {
+    int noOfReq, head;
+    printf("Enter no of requests: ");
+    scanf("%d", &noOfReq);
+    
+    int requests[noOfReq];
+    printf("Enter sequence of requests:\n");
+    for (int i = 0; i < noOfReq; i++)
+        scanf("%d", &requests[i]);
+    
+    printf("Enter position of head: ");
+    scanf("%d", &head);
+    
+    int ans = seek_time(requests, head, noOfReq);
+    printf("Total seek time: %d\n", ans);
+}
+
+
+SSTF:
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+int min_index(int arr[], int len) {
+    int min = arr[0], index = 0;
+    for (int i = 1; i < len; i++) {
+        if (arr[i] <= min) {
+            min = arr[i];
+            index = i;
+        }
+    }
+
+    return index;
+}
+
+int seek_time(int arr[], int head, int len) {
+    int seek_time = 0, req = len;
+    while (req--) {
+        int closest[len];
+        for (int i = 0; i < len; i++) {
+            closest[i] = abs(arr[i] - head);
+        }
+        seek_time += abs(head - arr[min_index(closest, len)]);
+        head = arr[min_index(closest, len)];
+        arr[min_index(closest, len)] = INT_MAX;
+    }
+    
+    return seek_time;
+}
+
+int main() {
+    int noOfReq, head;
+    printf("Enter no of requests: ");
+    scanf("%d", &noOfReq);
+    
+    int requests[noOfReq];
+    printf("Enter sequence of requests:\n");
+    for (int i = 0; i < noOfReq; i++)
+        scanf("%d", &requests[i]);
+    
+    printf("Enter position of head: ");
+    scanf("%d", &head);
+    
+    int ans = seek_time(requests, head, noOfReq);
+    printf("Total seek time: %d\n", ans);
+}
+
+
+
+
+
+Disk Scheduling SCAN:
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int min(int arr[], int len) {
+    int min = arr[0];
+    for (int i = 1; i < len; i++) {
+        if (arr[i] <= min) {
+            min = arr[i];
+        }
+    }
+
+    return min;
+}
+
+int main() {
+    int noOfReq, head;
+    printf("Enter no of requests: ");
+    scanf("%d", &noOfReq);
+    
+    int requests[noOfReq], max_req = 0;
+    printf("Enter sequence of requests:\n");
+    for (int i = 0; i < noOfReq; i++) {
+        scanf("%d", &requests[i]);
+        max_req = (requests[i] >= max_req) ? requests[i] : max_req;
+    }
+    
+    printf("Enter position of head: ");
+    scanf("%d", &head);
+
+    int range_min = 0, range_max = max_req + (10-1);
+    
+    int ans = abs(range_max - head) + (range_max - min(requests, noOfReq));
+    printf("Total seek time: %d\n", ans);
+}
+
+
+
+CSCAN:
+#include <stdio.h>
+#include <stdlib.h>
+
+void sort(int arr[], int len) {
+    for (int i = 0; i < len; i++) {
+        for (int j = 0; j < len-i-1; j++) {
+            if (arr[j] > arr[j+1]) {
+                int temp = arr[j+1];
+                arr[j+1] = arr[j];
+                arr[j] = temp;
+            }
+        }
+    }
+} 
+
+int min(int arr[], int len, int head) {
+    sort(arr, len);
+    int val = arr[0];
+    for (int i = 0; i < len; i++) {
+        if (arr[i] <= head) {
+            val = arr[i];
+        } else {
+            break;
+        }
+    }
+
+    return val;
+}
+
+int main() {
+    int noOfReq, head;
+    printf("Enter no of requests: ");
+    scanf("%d", &noOfReq);
+    
+    int requests[noOfReq], max_req = 0;
+    printf("Enter sequence of requests:\n");
+    for (int i = 0; i < noOfReq; i++) {
+        scanf("%d", &requests[i]);
+        max_req = (requests[i] >= max_req) ? requests[i] : max_req;
+    }
+    
+    printf("Enter position of head: ");
+    scanf("%d", &head);
+
+    int range_min = 0, range_max = max_req + (10-1);
+    
+    int ans = abs(range_max - head) + (range_max - range_min) + (min(requests, noOfReq, head) - range_min);
+    printf("Total seek time: %d\n", ans);
+}
+
+
+LOOK:
+#include <stdio.h>
+#include <stdlib.h>
+
+int min(int arr[], int len) {
+    int min = arr[0], index = 0;
+    for (int i = 1; i < len; i++) {
+        if (arr[i] <= min) {
+            min = arr[i];
+        }
+    }
+
+    return min;
+}
+
+int main() {
+    int noOfReq, head;
+    printf("Enter no of requests: ");
+    scanf("%d", &noOfReq);
+    
+    int requests[noOfReq], max_req = 0;
+    printf("Enter sequence of requests:\n");
+    for (int i = 0; i < noOfReq; i++) {
+        scanf("%d", &requests[i]);
+        max_req = (requests[i] >= max_req) ? requests[i] : max_req;
+    }
+    
+    printf("Enter position of head: ");
+    scanf("%d", &head);
+    
+    int ans = abs(max_req - head) + (max_req - min(requests, noOfReq));
+    printf("Total seek time: %d\n", ans);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CLOOK:
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+void sort(int arr[], int len) {
+    for (int i = 0; i < len; i++) {
+        for (int j = 0; j < len-i-1; j++) {
+            if (arr[j] > arr[j+1]) {
+                int temp = arr[j+1];
+                arr[j+1] = arr[j];
+                arr[j] = temp;
+            }
+        }
+    }
+} 
+
+int min(int arr[], int len, int head) {
+    sort(arr, len);
+    int val = arr[0];
+    for (int i = 0; i < len; i++) {
+        if (arr[i] <= head) {
+            val = arr[i];
+        } else {
+            break;
+        }
+    }
+
+    return val;
+}
+
+int main() {
+    int noOfReq, head;
+    printf("Enter no of requests: ");
+    scanf("%d", &noOfReq);
+    
+    int requests[noOfReq], max_req = INT_MIN, min_req = INT_MAX;
+    printf("Enter sequence of requests:\n");
+    for (int i = 0; i < noOfReq; i++) {
+        scanf("%d", &requests[i]);
+        max_req = (requests[i] >= max_req) ? requests[i] : max_req;
+        min_req = (requests[i] <= min_req) ? requests[i] : min_req;
+    }
+    
+    printf("Enter position of head: ");
+    scanf("%d", &head);
+    
+    int ans = abs(max_req - head) + (max_req - min_req) + (min(requests, noOfReq, head) - min_req);
+    printf("Total seek time: %d\n", ans);
+}
+
+
+
+
+
+
+First Fit Algorithm
+#include<iostream> using namespace std;
+void firstFit(int blockSize[], int m,
+int processSize[], int n)
+{ int allocation[n]; for(int i=0;i<n;i++)
+{ allocation[i]=-1;
+}
+for (int i = 0; i < n; i++)
+{ for (int j = 0; j < m; j++)
+{ if (blockSize[j] >= processSize[i])
+{ allocation[i] = j; blockSize[j] -= processSize[i];
+break;
+}
+}
+}
+cout << "\nProcess No.\tProcess Size\tBlock no.\n"; for (int i = 0; i < n; i++)
+{ cout << " " << i+1 << "\t\t"
+<<  processSize[i] << "\t\t"; if (allocation[i] != -1) cout << allocation[i] + 1;
+else cout << "Not Allocated";
+cout << endl;
+}
+}
+int main()
+{
+int blockSize[] = {100, 500, 200, 300, 600}; int processSize[] = {212, 417, 112 , 426}; int m = sizeof(blockSize) / sizeof(blockSize[0]); int n = sizeof(processSize) / sizeof(processSize[0]); firstFit(blockSize, m, processSize, n);
+return 0 ;
+}
+Best Fit Algorithm
+#include<iostream> using namespace std;
+void bestFit(int blockSize[], int m, int processSize[], int n)
+{ int allocation[n]; for(int i=0;i<n;i++)
+{ allocation[i]=-1;
+}
+for (int i=0; i<n; i++)
+{ int bestIdx = -1; for (int j=0; j<m; j++)
+{ if (blockSize[j] >= processSize[i])
+{ if (bestIdx == -1)
+bestIdx = j;
+else if (blockSize[bestIdx] > blockSize[j])
+bestIdx = j;
+} }
+if (bestIdx != -1)
+{ allocation[i] = bestIdx; blockSize[bestIdx] -= processSize[i];
+}
+}
+cout << "\nProcess No.\tProcess Size\tBlock no.\n"; for (int i = 0; i < n; i++)
+{ cout << "   " << i+1 << "\t\t" << processSize[i] << "\t\t"; if (allocation[i] != -1)
+cout << allocation[i] + 1;
+else
+cout << "Not Allocated";
+cout << endl;
+}
+} int main()
+{
+int blockSize[] = {100, 500, 200, 300, 600}; int processSize[] = {212, 417, 112 , 426}; int m = sizeof(blockSize)/sizeof(blockSize[0]); int n = sizeof(processSize)/sizeof(processSize[0]); bestFit(blockSize, m, processSize, n);
+return 0 ;
+}
+Worst Fit Algorithm
+#include<bits/stdc++.h> using namespace std;
+void worstFit(int blockSize[], int m, int processSize[], int n)
+{ int allocation[n]; for(int i=0;i<n;i++)
+{ allocation[i]=-1;
+}
+for (int i=0; i<n; i++)
+{ int wstIdx = -1; for (int j=0; j<m; j++)
+{ if (blockSize[j] >= processSize[i])
+{ if (wstIdx == -1)
+wstIdx = j;
+else if (blockSize[wstIdx] < blockSize[j])
+wstIdx = j;
+} }
+if (wstIdx != -1)
+{ allocation[i] = wstIdx; blockSize[wstIdx] -= processSize[i];
+}
+}
+cout << "\nProcess No.\tProcess Size\tBlock no.\n"; for (int i = 0; i < n; i++)
+{ cout << "   " << i+1 << "\t\t" << processSize[i] << "\t\t";
+if (allocation[i] != -1)
+cout << allocation[i] + 1;
+else
+cout << "Not Allocated";
+cout << endl;
+}
+}
+int main()
+{
+int blockSize[] = {100, 500, 200, 300, 600}; int processSize[] = {212, 417, 112 , 426}; int m = sizeof(blockSize)/sizeof(blockSize[0]); int n = sizeof(processSize)/sizeof(processSize[0]); worstFit(blockSize, m, processSize, n);
+return 0 ;
+}
+
+
+
+
+
